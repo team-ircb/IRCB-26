@@ -1,0 +1,12 @@
+_target_: datamodules.LatentDecision
+
+batch_total: 2048
+time_total: 200
+p_split:
+    - 0.5
+    - 0.5
+
+mesg_dist: "exponential"
+sig_smooth: 1
+
+resultpath: ${paths.resultpath}

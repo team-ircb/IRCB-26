@@ -1,0 +1,7 @@
+_target_: models.RelayDecision
+
+hidden_size: 256
+noise_p: 0.001
+noise_d: 0.001
+input_weight_init_var_scale: 1.0
+rnn_type: rnncell

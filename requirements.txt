@@ -1,0 +1,12 @@
+torch
+pytorch-lightning
+hydra-core
+omegaconf
+h5py
+matplotlib
+numpy
+scipy
+scikit-learn
+seaborn
+networkx
+ipykernel
