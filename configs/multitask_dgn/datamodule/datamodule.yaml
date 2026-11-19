@@ -1,0 +1,57 @@
+_target_: datamodules.CognitiveTaskSuite
+
+# Tasks: Yang et al. (2019)'s definitions, one step = 20 ms of his timeline
+task_variant: yang
+time_total: 200           # trials start at step 0; steps after a trial's end are padding
+
+# Stimulus encoding: per modality, 2 slots of (s cos theta, s sin theta)
+encoding: cartesian
+
+# Input noise, fresh at every step (the rule's noise is the model's rule_noise)
+input_noise: 0.02         # stimulus channels: Yang's evidence signal-to-noise ratio under this encoding
+fix_noise: 0.25           # fixation channel
+
+# Trials: a fresh training set every epoch; one fixed validation set
+batch_total: 7680         # 6,400 training (320 per task) + 1,280 validation (64 per task)
+p_split:
+  - 0.8333333333333334
+  - 0.1666666666666666
+resample_train: true
+batch_size: 64            # tasks mixed within a batch
+
+# Task sampling. Default: as Yang et al. (2019), Ctx DM 1 and 2 five times as often as the other
+# tasks. train_type: adaptive instead sets each task x condition group's share from its
+# validation performance, and ignores the weights below.
+train_type: weighted
+train_type_kwargs:
+  weights:
+    contextdm1: 5
+    contextdm2: 5
+  # Optional: condition shares within a task (training only; validation keeps the natural mix), e.g.
+  # cond_weights: {contextdm1: {conflict: 3}} makes 3 of every 4 Ctx DM 1 trials conflict trials.
+  # Unset = natural rates.
+
+# All 20 tasks, with Yang's task keys; list order = rule index = Yang's rule order
+task_names:
+  - fdgo
+  - reactgo
+  - delaygo
+  - fdanti
+  - reactanti
+  - delayanti
+  - dm1
+  - dm2
+  - contextdm1
+  - contextdm2
+  - multidm
+  - delaydm1
+  - delaydm2
+  - contextdelaydm1
+  - contextdelaydm2
+  - multidelaydm
+  - dmsgo
+  - dmsnogo
+  - dmcgo
+  - dmcnogo
+
+resultpath: ${paths.resultpath}

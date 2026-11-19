@@ -1,0 +1,78 @@
+# Multitask DGN: a 4-region GRU network trained on Yang et al. (2019)'s 20 tasks.
+# The defaults reproduce the released multitask network (graph seed 2).
+# Routing: fixation -> A0, both stimulus modalities -> A1, one-hot rule -> A2, both outputs
+# read from A3.
+_target_: models.CognitiveTaskSuite
+
+num_areas: 4
+hidden_size: 64           # units per area
+rnn_type: grucell         # torch.nn.GRUCell. rnncell gives a vanilla tanh RNN (no leak), which
+                          # trains with lr_init 4e-4 and grad_clip_val 0.25 instead.
+
+# Inter-area communication
+num_channels: 8           # message dimension per pathway
+delay: 2                  # a message computed at step t is first used at step t + 3;
+                          # inputs and outputs are not delayed
+message_source: post_noise  # messages are computed from the noisy hidden state
+diagram: null             # random graph, drawn from graph_kwargs
+graph_kwargs:
+  perc_conns: 0.70        # 8 of the 12 directed area pairs
+  shortest: 2             # every area reaches a readout area within 2 hops
+  seed: 2                 # graph seed: 2 is the released network
+
+# Input routing
+stim_input_areas:         # fixation, modality 1, modality 2
+  - A0
+  - A1
+  - A1
+rule_input_areas:         # one-hot task rule
+  - A2
+rule_noise: 0.25          # SD of the per-step noise on the rule channels
+
+# Readout (Yang et al. 2019): 1 fixation unit + 32-unit response ring, sigmoid outputs, one
+# linear layer from the readout area's post-noise state at the same step. MSE to Yang's
+# targets under his cost mask; directions decoded by population vector.
+readout_type: yang
+n_ring: 32
+readout_areas:
+  - A3
+
+# Loss mask
+pre_on_steps: 5           # first 5 steps (Yang's 100 ms) unscored
+grace_steps: auto         # unscored steps after the go cue: (delay + 1) x hops from the input
+                          # areas to the readout area + 5 (Yang's 100 ms); 11 on graphs 1 and 2
+tail: mask                # no loss after the trial's end (trials are padded to T)
+
+# Recurrent noise: Gaussian, added after tanh, ramped from 30% to 100% over 200 epochs
+noise: 0.1
+noise_start: 0
+noise_increase: 200
+noise_init: 0.3
+
+# L2: l2_scale x mean square over every weight matrix (input, recurrent, communication and
+# readout weights alike; biases not penalised), ramped like the noise
+l2_groups: uniform
+l2_scale: 1e-3
+l2_start: 0
+l2_increase: 200
+l2_init: 0.3
+
+# Group penalty on message activity (scale x sum over pathways of each pathway's RMS
+# message), ramped like L2. 0 = off.
+comm_act_scale: 0.0
+comm_act_start: 0
+comm_act_increase: 200
+comm_act_init: 0.3
+
+# Rule-reconstruction loss: a linear decoder per area reads the task from the hidden state
+# (cross-entropy from step rule_aux_skip to the trial's end). It makes every area carry the rule,
+# which then has to be communicated from A2. The decoders are used in training only.
+rule_aux_scale: 0.01
+rule_aux_skip: 10
+
+# Optimiser: AdamW, constant learning rate (gradient clipping is set in main.yaml).
+# Stage 1 trains from scratch at 1e-3; stage 2 (+stage=finetune) resumes at 3e-4.
+lr_init: 1e-3
+lr_schedule: constant
+
+task_names: ${datamodule.task_names}

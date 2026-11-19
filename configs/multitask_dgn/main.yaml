@@ -1,0 +1,76 @@
+defaults:
+  - model: model
+  - datamodule: datamodule
+  - callbacks: callbacks
+  - _self_
+
+seed: 0
+# Gradient clipping by global norm (read by scripts/generate_data.py). The vanilla tanh
+# variant (model.rnn_type=rnncell) uses 0.25.
+grad_clip_val: 1.0
+grad_clip_algorithm: norm
+run_dir: null
+paths:
+  resultpath: .
+
+trainer:
+  _target_: pytorch_lightning.Trainer
+  max_epochs: 10000     # an upper bound; acceptance stopping ends training (below)
+  max_time: "05:00:00:00"  # 5 days wall clock. Lightning ignores max_time until min_epochs is reached.
+  min_epochs: 220       # past the 200-epoch noise and L2 ramps, so acceptance stopping can act
+  log_every_n_steps: 20
+  reload_dataloaders_every_n_epochs: 1  # needed by datamodule.resample_train
+
+callbacks:
+  model_checkpoints:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: null
+    save_top_k: -1
+    every_n_epochs: 20
+    dirpath: lightning_checkpoints
+    save_last: true
+    verbose: false
+    auto_insert_metric_name: false
+
+  best_checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: valid/loss
+    mode: min
+    save_top_k: 1
+    dirpath: lightning_checkpoints
+    filename: "best"
+    save_last: false
+    verbose: false
+    auto_insert_metric_name: false
+
+  learning_rate_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: epoch
+
+  # Keep the checkpoint whose worst task is best, counting only epochs after the noise and
+  # L2 ramps; stop once every task has passed 0.8 (strict Yang-style performance on the
+  # validation set) for 20 consecutive epochs. No loss-based early stopping, which can fire
+  # while a task still fails.
+  best_worst_task_checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: valid/perfstrict_min_after_ramp
+    mode: max
+    save_top_k: 1
+    dirpath: lightning_checkpoints
+    filename: "best_worst_task"
+    save_last: false
+    verbose: false
+    auto_insert_metric_name: false
+
+  acceptance_stopping:
+    _target_: callbacks.AcceptanceStopping
+    monitor: valid/perfstrict_min_after_ramp
+    threshold: 0.8
+    patience: 20
+
+logger:
+  tensorboard_logger:
+    _target_: pytorch_lightning.loggers.TensorBoardLogger
+    save_dir: "."
+    version: ""
+    name: ""

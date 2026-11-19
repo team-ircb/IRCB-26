@@ -1,0 +1,14 @@
+# @package _global_
+# Single-task network with the same design as the multitask DGN (tasks, inputs, readout,
+# lag, noise, regularisation, optimiser, stopping and checkpoint rules). Only what a single
+# task changes is set here: no rule input (it would be a constant), and uniform sampling
+# (the 5x context-task weights refer to other tasks). The task must be given; with several
+# tasks and no rule input the model refuses to build.
+#
+#   python scripts/generate_data.py multitask_dgn --override +mode=single_task \
+#       --override "datamodule.task_names=[contextdm1]"
+datamodule:
+  train_type: random
+model:
+  rule_input_areas: []
+  rule_aux_scale: 0.0      # no rule to reconstruct

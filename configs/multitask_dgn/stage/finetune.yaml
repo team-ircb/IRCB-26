@@ -1,0 +1,11 @@
+# @package _global_
+# Stage 2 of training the multitask DGN: resume from a stage-1 checkpoint at a lower learning
+# rate. A resumed run restores the optimizer's learning rate from the checkpoint, so first write a
+# copy of the checkpoint with the new rate (scripts/set_ckpt_lr.py), then resume from that copy:
+#
+#   python scripts/set_ckpt_lr.py --ckpt runs/stage1/lightning_checkpoints/<epoch>-<step>.ckpt \
+#       --lr 3e-4 --out runs/stage1_lr3e-4.ckpt
+#   python scripts/generate_data.py multitask_dgn --run_name stage2 --override +stage=finetune \
+#       --ckpt_path runs/stage1_lr3e-4.ckpt
+model:
+  lr_init: 3e-4

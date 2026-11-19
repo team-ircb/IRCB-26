@@ -1,0 +1,21 @@
+# Point to a downloaded sub-440959 folder, or any folder with that subject's NWBs.
+input_dir: raw/sub-440959
+output_dir: processed
+subjects:
+  - id: "440959"
+    name: "Mouse 440959"
+trial_filter:
+  duration_tolerance_s: 0.5
+  photostim: exclude
+binning:
+  mode: fixed_bins
+  n_bins: 500
+units:
+  classification: good
+metadata:
+  trial_fields:
+    start_time: start_time
+    stop_time: stop_time
+    photostim_onset: photostim_onset
+    trial_uid: trial_uid
+regions: {}

@@ -1,0 +1,54 @@
+# Paper-style example centered on subject 440959.
+# Run scripts/chen2024/inspect_nwb.py on your files and adjust any anno_name entries if needed.
+input_dir: raw
+output_dir: processed_440959
+
+subjects:
+  - id: "440959"
+    name: "Mouse 440959"
+
+trial_filter:
+  duration_tolerance_s: 0.5
+  photostim: exclude
+
+binning:
+  mode: fixed_bins
+  n_bins: 500
+
+units:
+  classification: good
+
+metadata:
+  trial_fields:
+    start_time: start_time
+    stop_time: stop_time
+    photostim_onset: photostim_onset
+    photostim_duration: photostim_duration
+    trial_uid: trial_uid
+    outcome: outcome
+    trial_instruction: trial_instruction
+
+# NWB anno_name holds full Allen names; they are translated to CCF abbreviations
+# (packaged table, as in the original extraction), so the groups below list abbreviations.
+region_labels: abbreviation
+
+regions:
+  ALM:
+    - MOs2/3
+    - MOs5
+    - MOs6a
+  Thalamus_ALM:
+    - VAL
+    - VM
+  Thalamus_other:
+    - AV
+    - LD
+  MRN_PPN:
+    - MRN
+    - PPN
+  SC:
+    - SCig
+    - SCiw
+    - SCop
+    - SCsg
+    - SCzo

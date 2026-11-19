@@ -1,0 +1,19 @@
+torch
+pytorch-lightning
+hydra-core
+omegaconf
+h5py
+matplotlib
+numpy
+scipy
+scikit-learn
+seaborn
+networkx
+ipykernel
+# Real data (src/chen2024)
+pandas
+pynwb
+PyYAML
+requests
+tqdm
+remfile
